@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aristorinjuang/weight-go/tools/grpc";
+
+service WeightService {
+  rpc ListWeights(google.protobuf.Empty) returns (Weights) {
+    option (google.api.http) = {
+      get: "/v1/weights"
+    };
+  };
+  rpc CreateWeight(WeightParams) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/weights"
+      body: "*"
+    };
+  };
+  rpc ReadWeight(WeightParams) returns (Weight) {
+    option (google.api.http) = {
+      get: "/v1/weights/{date}"
+    };
+  };
+  rpc UpdateWeight(WeightParams) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/weights/{date}"
+      body: "*"
+    };
+  };
+  rpc DeleteWeight(WeightParams) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/weights/{date}"
+    };
+  };
+}
+
+message WeightParams {
+  string date = 1;
+  double max = 2;
+  double min = 3;
+}
+
+message Weight {
+  google.protobuf.Timestamp date = 1;
+  double max = 2;
+  double min = 3;
+  double difference = 4;
+}
+
+message Weights {
+  repeated Weight weights = 1;
+  double average_max = 2;
+  double average_min = 3;
+  double average_difference = 4;
+}
