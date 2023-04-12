@@ -3,8 +3,8 @@ package repository
 import (
 	"time"
 
-	"github.com/aristorinjuang/weight-go/internal/aggregate"
-	"github.com/aristorinjuang/weight-go/internal/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/aggregate"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
 )
 
 type WeightRepository interface {

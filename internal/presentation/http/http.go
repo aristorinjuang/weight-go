@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aristorinjuang/weight-go/internal/repository"
+	"github.com/aristorinjuang/weight-go/internal/domain/repository"
 	pb "github.com/aristorinjuang/weight-go/tools/grpc"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"

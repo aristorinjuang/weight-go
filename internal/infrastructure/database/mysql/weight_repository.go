@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/aristorinjuang/weight-go/internal/aggregate"
-	"github.com/aristorinjuang/weight-go/internal/entity"
-	"github.com/aristorinjuang/weight-go/internal/repository"
+	"github.com/aristorinjuang/weight-go/internal/domain/aggregate"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/repository"
 	_ "github.com/go-sql-driver/mysql"
 )
 

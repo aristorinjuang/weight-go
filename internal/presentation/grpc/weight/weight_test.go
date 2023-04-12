@@ -6,9 +6,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/aristorinjuang/weight-go/internal/aggregate"
-	"github.com/aristorinjuang/weight-go/internal/entity"
-	"github.com/aristorinjuang/weight-go/internal/repository"
+	"github.com/aristorinjuang/weight-go/internal/domain/aggregate"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/repository"
 	"github.com/aristorinjuang/weight-go/test/data"
 	pb "github.com/aristorinjuang/weight-go/tools/grpc"
 	"github.com/stretchr/testify/suite"

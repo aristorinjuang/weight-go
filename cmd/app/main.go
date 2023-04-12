@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aristorinjuang/weight-go/internal/config"
-	grpcServer "github.com/aristorinjuang/weight-go/internal/delivery/grpc"
-	httpServer "github.com/aristorinjuang/weight-go/internal/delivery/http"
+	"github.com/aristorinjuang/weight-go/internal/application/config"
 	"github.com/aristorinjuang/weight-go/internal/infrastructure/database/mysql"
+	grpcServer "github.com/aristorinjuang/weight-go/internal/presentation/grpc"
+	httpServer "github.com/aristorinjuang/weight-go/internal/presentation/http"
 )
 
 func main() {

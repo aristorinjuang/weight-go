@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	handler "github.com/aristorinjuang/weight-go/internal/delivery/grpc/weight"
-	"github.com/aristorinjuang/weight-go/internal/repository"
+	"github.com/aristorinjuang/weight-go/internal/domain/repository"
+	handler "github.com/aristorinjuang/weight-go/internal/presentation/grpc/weight"
 	pb "github.com/aristorinjuang/weight-go/tools/grpc"
 	"google.golang.org/grpc"
 )

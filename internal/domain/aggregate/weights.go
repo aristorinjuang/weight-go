@@ -3,7 +3,7 @@ package aggregate
 import (
 	"errors"
 
-	"github.com/aristorinjuang/weight-go/internal/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
 )
 
 type Weights struct {

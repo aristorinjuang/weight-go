@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/aristorinjuang/weight-go/internal/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
 )
 
 var (

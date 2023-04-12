@@ -55,15 +55,15 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/aristorinjuang/weight-go/internal/aggregate/weights.go (100.0%)</option>
+				<option value="file0">github.com/aristorinjuang/weight-go/internal/domain/aggregate/weights.go (100.0%)</option>
 				
-				<option value="file1">github.com/aristorinjuang/weight-go/internal/delivery/grpc/weight/weight.go (100.0%)</option>
+				<option value="file1">github.com/aristorinjuang/weight-go/internal/domain/entity/weight.go (100.0%)</option>
 				
-				<option value="file2">github.com/aristorinjuang/weight-go/internal/delivery/grpc/weight/weight_model.go (100.0%)</option>
+				<option value="file2">github.com/aristorinjuang/weight-go/internal/infrastructure/database/mysql/weight_repository.go (100.0%)</option>
 				
-				<option value="file3">github.com/aristorinjuang/weight-go/internal/entity/weight.go (100.0%)</option>
+				<option value="file3">github.com/aristorinjuang/weight-go/internal/presentation/grpc/weight/weight.go (100.0%)</option>
 				
-				<option value="file4">github.com/aristorinjuang/weight-go/internal/infrastructure/database/mysql/weight_repository.go (100.0%)</option>
+				<option value="file4">github.com/aristorinjuang/weight-go/internal/presentation/grpc/weight/weight_model.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -82,7 +82,7 @@
 import (
         "errors"
 
-        "github.com/aristorinjuang/weight-go/internal/entity"
+        "github.com/aristorinjuang/weight-go/internal/domain/entity"
 )
 
 type Weights struct {
@@ -138,14 +138,190 @@ func NewWeights(weights entity.Weights) *Weights <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package weight
+		<pre class="file" id="file1" style="display: none">package entity
+
+import (
+        "errors"
+        "time"
+)
+
+type Weight struct {
+        date time.Time
+        max  float64
+        min  float64
+}
+
+func (w *Weight) Date() time.Time <span class="cov8" title="1">{
+        return w.date
+}</span>
+
+func (w *Weight) Max() float64 <span class="cov8" title="1">{
+        return w.max
+}</span>
+
+func (w *Weight) Min() float64 <span class="cov8" title="1">{
+        return w.min
+}</span>
+
+func (w *Weight) Difference() float64 <span class="cov8" title="1">{
+        return w.max - w.min
+}</span>
+
+func NewWeight(date time.Time, max, min float64) (*Weight, error) <span class="cov8" title="1">{
+        if date == (time.Time{}) </span><span class="cov8" title="1">{
+                return nil, errors.New("date cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if max &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, errors.New("max cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if min &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, errors.New("min cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if max &lt;= min </span><span class="cov8" title="1">{
+                return nil, errors.New("max cannot be equal or lower than min")
+        }</span>
+        <span class="cov8" title="1">return &amp;Weight{
+                date: date,
+                max:  max,
+                min:  min,
+        }, nil</span>
+}
+
+func RebuildWeight(date time.Time, max, min float64) *Weight <span class="cov8" title="1">{
+        return &amp;Weight{
+                date: date,
+                max:  max,
+                min:  min,
+        }
+}</span>
+
+type (
+        Weights   []*Weight
+        WeightMap map[time.Time]*Weight
+)
+
+func (w Weights) Map() (m WeightMap, maxs, mins float64) <span class="cov8" title="1">{
+        m = make(WeightMap)
+
+        for _, weight := range w </span><span class="cov8" title="1">{
+                m[weight.date] = weight
+                maxs += weight.Max()
+                mins += weight.Min()
+        }</span>
+
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package mysql
+
+import (
+        "database/sql"
+        "time"
+
+        "github.com/aristorinjuang/weight-go/internal/domain/aggregate"
+        "github.com/aristorinjuang/weight-go/internal/domain/entity"
+        "github.com/aristorinjuang/weight-go/internal/domain/repository"
+        _ "github.com/go-sql-driver/mysql"
+)
+
+type weightRepositoryMySQL struct {
+        db *sql.DB
+}
+
+func (d *weightRepositoryMySQL) List() (*aggregate.Weights, error) <span class="cov8" title="1">{
+        rows, err := d.db.Query("SELECT max, min, date FROM weights")
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        weights := aggregate.NewWeights(nil)
+
+        for rows.Next() </span><span class="cov8" title="1">{
+                var (
+                        max, min float64
+                        date     time.Time
+                )
+                rows.Scan(&amp;max, &amp;min, &amp;date)
+
+                weights.AddWeight(entity.RebuildWeight(date, max, min))
+        }</span>
+
+        <span class="cov8" title="1">return weights, nil</span>
+}
+
+func (d *weightRepositoryMySQL) Create(weight *entity.Weight) error <span class="cov8" title="1">{
+        _, err := d.db.Exec(
+                "INSERT INTO weights(max, min, date) VALUES(?, ?, ?)",
+                weight.Max(),
+                weight.Min(),
+                weight.Date(),
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (d *weightRepositoryMySQL) Read(date time.Time) (*entity.Weight, error) <span class="cov8" title="1">{
+        rows, err := d.db.Query(
+                "SELECT max, min FROM weights WHERE date = ?",
+                date,
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        var max, min float64
+        for rows.Next() </span><span class="cov8" title="1">{
+                rows.Scan(&amp;max, &amp;min)
+        }</span>
+
+        <span class="cov8" title="1">return entity.RebuildWeight(date, max, min), nil</span>
+}
+
+func (d *weightRepositoryMySQL) Update(weight *entity.Weight) error <span class="cov8" title="1">{
+        _, err := d.db.Exec(
+                "UPDATE weights SET max = ?, min = ? WHERE date = ?",
+                weight.Max(),
+                weight.Min(),
+                weight.Date(),
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (d *weightRepositoryMySQL) Delete(date time.Time) error <span class="cov8" title="1">{
+        _, err := d.db.Exec(
+                "DELETE FROM weights WHERE date = ?",
+                date,
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func NewWeightRepositoryMySQL(db *sql.DB) repository.WeightRepository <span class="cov8" title="1">{
+        return &amp;weightRepositoryMySQL{db}
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package weight
 
 import (
         "context"
         "time"
 
-        "github.com/aristorinjuang/weight-go/internal/entity"
-        "github.com/aristorinjuang/weight-go/internal/repository"
+        "github.com/aristorinjuang/weight-go/internal/domain/entity"
+        "github.com/aristorinjuang/weight-go/internal/domain/repository"
         pb "github.com/aristorinjuang/weight-go/tools/grpc"
         "google.golang.org/protobuf/types/known/emptypb"
         "google.golang.org/protobuf/types/known/timestamppb"
@@ -243,10 +419,10 @@ func New(repository repository.WeightRepository) *handler <span class="cov8" tit
 }</span>
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package weight
+		<pre class="file" id="file4" style="display: none">package weight
 
 import (
-        "github.com/aristorinjuang/weight-go/internal/entity"
+        "github.com/aristorinjuang/weight-go/internal/domain/entity"
         pb "github.com/aristorinjuang/weight-go/tools/grpc"
         "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -265,182 +441,6 @@ func (w weights) From(weights entity.WeightMap) weights <span class="cov8" title
 
         <span class="cov8" title="1">return w</span>
 }
-</pre>
-		
-		<pre class="file" id="file3" style="display: none">package entity
-
-import (
-        "errors"
-        "time"
-)
-
-type Weight struct {
-        date time.Time
-        max  float64
-        min  float64
-}
-
-func (w *Weight) Date() time.Time <span class="cov8" title="1">{
-        return w.date
-}</span>
-
-func (w *Weight) Max() float64 <span class="cov8" title="1">{
-        return w.max
-}</span>
-
-func (w *Weight) Min() float64 <span class="cov8" title="1">{
-        return w.min
-}</span>
-
-func (w *Weight) Difference() float64 <span class="cov8" title="1">{
-        return w.max - w.min
-}</span>
-
-func NewWeight(date time.Time, max, min float64) (*Weight, error) <span class="cov8" title="1">{
-        if date == (time.Time{}) </span><span class="cov8" title="1">{
-                return nil, errors.New("date cannot be empty")
-        }</span>
-        <span class="cov8" title="1">if max &lt;= 0 </span><span class="cov8" title="1">{
-                return nil, errors.New("max cannot be empty")
-        }</span>
-        <span class="cov8" title="1">if min &lt;= 0 </span><span class="cov8" title="1">{
-                return nil, errors.New("min cannot be empty")
-        }</span>
-        <span class="cov8" title="1">if max &lt;= min </span><span class="cov8" title="1">{
-                return nil, errors.New("max cannot be equal or lower than min")
-        }</span>
-        <span class="cov8" title="1">return &amp;Weight{
-                date: date,
-                max:  max,
-                min:  min,
-        }, nil</span>
-}
-
-func RebuildWeight(date time.Time, max, min float64) *Weight <span class="cov8" title="1">{
-        return &amp;Weight{
-                date: date,
-                max:  max,
-                min:  min,
-        }
-}</span>
-
-type (
-        Weights   []*Weight
-        WeightMap map[time.Time]*Weight
-)
-
-func (w Weights) Map() (m WeightMap, maxs, mins float64) <span class="cov8" title="1">{
-        m = make(WeightMap)
-
-        for _, weight := range w </span><span class="cov8" title="1">{
-                m[weight.date] = weight
-                maxs += weight.Max()
-                mins += weight.Min()
-        }</span>
-
-        <span class="cov8" title="1">return</span>
-}
-</pre>
-		
-		<pre class="file" id="file4" style="display: none">package mysql
-
-import (
-        "database/sql"
-        "time"
-
-        "github.com/aristorinjuang/weight-go/internal/aggregate"
-        "github.com/aristorinjuang/weight-go/internal/entity"
-        "github.com/aristorinjuang/weight-go/internal/repository"
-        _ "github.com/go-sql-driver/mysql"
-)
-
-type weightRepositoryMySQL struct {
-        db *sql.DB
-}
-
-func (d *weightRepositoryMySQL) List() (*aggregate.Weights, error) <span class="cov8" title="1">{
-        rows, err := d.db.Query("SELECT max, min, date FROM weights")
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
-
-        weights := aggregate.NewWeights(nil)
-
-        for rows.Next() </span><span class="cov8" title="1">{
-                var (
-                        max, min float64
-                        date     time.Time
-                )
-                rows.Scan(&amp;max, &amp;min, &amp;date)
-
-                weights.AddWeight(entity.RebuildWeight(date, max, min))
-        }</span>
-
-        <span class="cov8" title="1">return weights, nil</span>
-}
-
-func (d *weightRepositoryMySQL) Create(weight *entity.Weight) error <span class="cov8" title="1">{
-        _, err := d.db.Exec(
-                "INSERT INTO weights(max, min, date) VALUES(?, ?, ?)",
-                weight.Max(),
-                weight.Min(),
-                weight.Date(),
-        )
-        if err != nil </span><span class="cov8" title="1">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">return nil</span>
-}
-
-func (d *weightRepositoryMySQL) Read(date time.Time) (*entity.Weight, error) <span class="cov8" title="1">{
-        rows, err := d.db.Query(
-                "SELECT max, min FROM weights WHERE date = ?",
-                date,
-        )
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
-        }</span>
-        <span class="cov8" title="1">defer rows.Close()
-
-        var max, min float64
-        for rows.Next() </span><span class="cov8" title="1">{
-                rows.Scan(&amp;max, &amp;min)
-        }</span>
-
-        <span class="cov8" title="1">return entity.RebuildWeight(date, max, min), nil</span>
-}
-
-func (d *weightRepositoryMySQL) Update(weight *entity.Weight) error <span class="cov8" title="1">{
-        _, err := d.db.Exec(
-                "UPDATE weights SET max = ?, min = ? WHERE date = ?",
-                weight.Max(),
-                weight.Min(),
-                weight.Date(),
-        )
-        if err != nil </span><span class="cov8" title="1">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">return nil</span>
-}
-
-func (d *weightRepositoryMySQL) Delete(date time.Time) error <span class="cov8" title="1">{
-        _, err := d.db.Exec(
-                "DELETE FROM weights WHERE date = ?",
-                date,
-        )
-        if err != nil </span><span class="cov8" title="1">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">return nil</span>
-}
-
-func NewWeightRepositoryMySQL(db *sql.DB) repository.WeightRepository <span class="cov8" title="1">{
-        return &amp;weightRepositoryMySQL{db}
-}</span>
 </pre>
 		
 		</div>

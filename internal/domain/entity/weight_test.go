@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aristorinjuang/weight-go/internal/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
 	"github.com/aristorinjuang/weight-go/test/data"
 	"github.com/stretchr/testify/assert"
 )

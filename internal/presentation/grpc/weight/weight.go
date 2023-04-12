@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/aristorinjuang/weight-go/internal/entity"
-	"github.com/aristorinjuang/weight-go/internal/repository"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/repository"
 	pb "github.com/aristorinjuang/weight-go/tools/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"

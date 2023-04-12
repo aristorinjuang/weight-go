@@ -1,7 +1,7 @@
 package weight
 
 import (
-	"github.com/aristorinjuang/weight-go/internal/entity"
+	"github.com/aristorinjuang/weight-go/internal/domain/entity"
 	pb "github.com/aristorinjuang/weight-go/tools/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
